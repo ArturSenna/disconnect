@@ -1,0 +1,1 @@
+Aqui ficam dados sensiveis se não me engano, tipo chave de API, string de conexão com banco, etc
