@@ -8,6 +8,7 @@ Informações básicas do projeto.
   - [Artur Otoni Senna Luz](https://github.com/ArturSenna)
   - [Júlia Batista Moreira](https://github.com/batistemo)
   - [Bruno Mesquita Bicalho](https://github.com/BrunoBicalho13)
+  - [Felipe Pereira da Silva](https://github.com/FelipeSilva96)
 
 A documentação do projeto é estruturada da seguinte forma:
 
