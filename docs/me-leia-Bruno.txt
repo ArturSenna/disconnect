@@ -1,0 +1,1 @@
+Coloquei o disconnect.sql aqui dentro porque é um arquivo que será apagado depois. Ele só serve como um "rascunho" pras migrations, além disso eu fiz alguns comentários do que mudei pro Bruno entender melhor. Quando as migrations forem criadas, apagar o disconnect.sql junto com esse 'leia-me'. Coloquei aqui em docs porque não é parte do código que vai rodar com o projeto.
