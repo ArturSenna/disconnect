@@ -66,6 +66,7 @@ ALTER TABLE Avaliacao ADD CONSTRAINT pk_avaliacao PRIMARY KEY (
 );
 
 ------------------------- Fim da definição das primarias --------------------
+
 ------------------------- Definição das estrangeiras ------------------------
 ALTER TABLE Evento ADD CONSTRAINT fk_evento_usuario FOREIGN KEY (Id_organizador) REFERENCES Usuario (Id_usuario) ON DELETE CASCADE; -- coloquei ON DELETE CASCADE porque se você apaga o Usuario que cria o evento, automaticamente vai apagar aquele evento
 
