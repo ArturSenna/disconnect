@@ -1,18 +1,18 @@
 package com.disconnect.domain;
 
-public class Categoria {
+public class Modalidade {
 
     private Integer id;
     private String nome;
-    private String modalidade;
+    private String categoria;
 
-    public Categoria() {
+    public Modalidade() {
     }
 
-    public Categoria(Integer id, String nome, String modalidade) {
+    public Modalidade(Integer id, String nome, String categoria) {
         this.id = id;
         this.nome = nome;
-        this.modalidade = modalidade;
+        this.categoria = categoria;
     }
 
     public Integer getId() {
@@ -31,12 +31,12 @@ public class Categoria {
         this.nome = nome;
     }
 
-    public String getModalidade() {
-        return modalidade;
+    public String getCategoria() {
+        return categoria;
     }
 
-    public void setModalidade(String modalidade) {
-        this.modalidade = modalidade;
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 
 }
