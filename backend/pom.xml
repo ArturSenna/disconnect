@@ -26,21 +26,16 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>10.10.0</version>
-                
                 <configuration>
                     <url>jdbc:postgresql://localhost:5432/disconnect_db</url>
                     <user>postgres</user>
-                    <password>uma_senha_qualquer</password>
-                    <locations>
-                        <location>filesystem:src/main/resources/db/migration</location>
-                    </locations>
+                    <password>uma_senha_qualquer</password> 
                 </configuration>
-                
                 <dependencies>
                     <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>42.7.2</version>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-database-postgresql</artifactId>
+                        <version>10.10.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
