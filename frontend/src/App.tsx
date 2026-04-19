@@ -15,22 +15,14 @@ export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        {/* Public routes */}
+        {/* Rotas Públicas */}
         <Route path="/landing" element={<LandingPage />} />
+
+        {/* Se alguém tentar ir direto pela URL, mandamos para a Landing para abrir a tela de login */}
         <Route path="/login" element={<Navigate to="/landing" replace />} />
         <Route path="/register" element={<Navigate to="/landing" replace />} />
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/events/create" element={<CreateEventPage />} />
-          <Route path="/events/:id/edit" element={<EditEventPage />} />
-          <Route path="/events/:id" element={<EventDetailsPage />} />
-          <Route path="/events" element={<MyEventsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/profile/:id" element={<ProfilePage />} />
-        </Route>
 
-        {/* Protected routes with app layout */}
+        {/* Rotas Protegidas (Só entra se logar) */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomePage />} />
@@ -44,7 +36,7 @@ export default function App() {
           </Route>
         </Route>
 
-        {/* Fallback */}
+        {/* Fallback (Rota não encontrada vai para a Landing) */}
         <Route path="*" element={<Navigate to="/landing" replace />} />
       </Routes>
     </AuthProvider>
