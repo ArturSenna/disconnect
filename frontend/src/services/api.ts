@@ -1,13 +1,5 @@
-/**
- * API client — thin wrapper around fetch.
- *
- * While the backend is not ready, every service file imports from
- * `@/mocks/data` instead of calling these helpers.  Once the
- * Spring Boot API is live, swap the service implementations to
- * use `api.get(...)`, `api.post(...)`, etc.
- */
-
-const BASE_URL = "/api";
+// Aponta direto para o Back-end. Tanto Jetty ou Tomcat
+const BASE_URL = "http://localhost:8080/api";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -16,11 +8,27 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(body || `HTTP ${res.status}`);
+    // Tratamento de erros do nosso Controller Java
+    let errorMessage = `HTTP Error ${res.status}`;
+    try {
+      // Tenta ler o JSON {"erro": "mensagem"} que foi criado no Java
+      const errorData = await res.json();
+      if (errorData.erro) {
+        errorMessage = errorData.erro;
+      }
+    } catch (e) {
+      // Se não for JSON, tipo se for pq o servidor caiu, pega o texto puro
+      const body = await res.text();
+      if (body) errorMessage = body;
+    }
+
+    // Lança a exceção que o componente React vai capturar
+    throw new Error(errorMessage);
   }
 
+  // Se for o DELETE, devolve vazio sem tentar ler JSON
   if (res.status === 204) return undefined as T;
+
   return res.json() as Promise<T>;
 }
 

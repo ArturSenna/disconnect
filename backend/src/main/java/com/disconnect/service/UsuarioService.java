@@ -112,4 +112,19 @@ public class UsuarioService {
             throw new RuntimeException("Falha ao eliminar a conta do utilizador. Pode estar bloqueada por restrições da base de dados.");
         }
     }
+
+    // Valida as credenciais de acesso do usuário.
+    public Usuario autenticar(String login, String senha) {
+        if (login == null || senha == null || login.trim().isEmpty() || senha.trim().isEmpty()) {
+            throw new IllegalArgumentException("Login e senha são obrigatórios.");
+        }
+
+        Usuario usuarioBanco = usuarioDAO.buscarPorLogin(login);
+
+        if (usuarioBanco == null || !usuarioBanco.getSenha().equals(senha)) {
+            throw new IllegalArgumentException("Usuário ou senha inválidos.");
+        }
+
+        return usuarioBanco; // Se o login deu bom
+    }
 }

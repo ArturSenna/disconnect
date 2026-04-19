@@ -9,12 +9,11 @@ export type StatusParticipacao = "PENDENTE" | "APROVADO" | "RECUSADO";
 export interface Usuario {
   id: number;
   nome: string;
-  email: string;
   login: string;
-  senha?: string; // Never sent from backend on reads
   idade?: number;
   biografia?: string;
-  dataCriacao: string; // ISO date string
+  urlFoto?: string;
+  dataCriacao: string;
 }
 
 export interface Categoria {
@@ -61,6 +60,8 @@ export interface CreateUsuarioDTO {
   senha: string;
   idade?: number;
   biografia?: string;
+  urlFoto?: string;
+  isAdmin?: boolean;
 }
 
 export interface UpdateUsuarioDTO {

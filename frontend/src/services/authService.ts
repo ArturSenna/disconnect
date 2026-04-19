@@ -1,34 +1,20 @@
 import type { Usuario, LoginDTO, CreateUsuarioDTO } from "@/types";
-import { mockUsuarios } from "@/mocks/data";
-
-// Simulated delay to mimic network calls
-const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
+import { api } from "./api";
 
 export const authService = {
-  async login(credentials: LoginDTO): Promise<Usuario> {
-    await delay();
-    const user = mockUsuarios.find((u) => u.login === credentials.login);
-    if (!user) throw new Error("Usuário ou senha inválidos.");
-    // In the real API, password validation happens server-side
-    return { ...user };
-  },
+  // REGISTRO
+  //  Pega o DTO da tela e atira para o Java em POST /api/usuarios.
+  // Se o Java devolver 201 Created, ele retorna o UsuarioResponseDTO.
+  //  Se o Java devolver 400 ou 500, o api.ts lança o Erro e a tela captura.
 
   async register(data: CreateUsuarioDTO): Promise<Usuario> {
-    await delay();
-    const exists = mockUsuarios.find(
-      (u) => u.login === data.login || u.email === data.email,
-    );
-    if (exists) throw new Error("Usuário já existe.");
-    const newUser: Usuario = {
-      id: mockUsuarios.length + 1,
-      nome: data.nome,
-      email: data.email,
-      login: data.login,
-      idade: data.idade,
-      biografia: data.biografia,
-      dataCriacao: new Date().toISOString(),
-    };
-    mockUsuarios.push(newUser);
-    return { ...newUser };
+    return api.post<Usuario>("/usuarios", data);
+  },
+
+  // LOGIN:
+  // Envia as credenciais para o servidor validar a senha.
+
+  async login(credentials: LoginDTO): Promise<Usuario> {
+    return api.post<Usuario>("/login", credentials);
   },
 };
