@@ -11,12 +11,14 @@ public class Usuario {
     private String senha;
     private Integer idade;
     private String biografia;
+    private String urlFoto;
+    private Boolean IsAdmin;
     private LocalDateTime dataCriacao;
 
     public Usuario() {
     }
 
-    public Usuario(Integer id, String nome, String email, String login, String senha, Integer idade, String biografia) {
+    public Usuario(Integer id, String nome, String email, String login, String senha, Integer idade, String biografia, String urlFoto, Boolean isAdmin) {
         this.id = id;
         this.nome = nome;
         this.email = email;
@@ -24,6 +26,8 @@ public class Usuario {
         this.senha = senha;
         this.idade = idade;
         this.biografia = biografia;
+        this.urlFoto = urlFoto;
+        this.IsAdmin = isAdmin;
         this.dataCriacao = LocalDateTime.now();
     }
 
@@ -81,6 +85,22 @@ public class Usuario {
 
     public void setBiografia(String biografia) {
         this.biografia = biografia;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
+    public void setUrlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
+    }
+
+    public Boolean getIsAdmin() {
+        return IsAdmin;
+    }
+
+    public void setIsAdmin(Boolean isAdmin) {
+        IsAdmin = isAdmin;
     }
 
     public LocalDateTime getDataCriacao() {
