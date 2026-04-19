@@ -10,6 +10,8 @@ import { EditEventPage } from "@/pages/events/EditEvent";
 import { EventDetailsPage } from "@/pages/events/EventDetails";
 import { MyEventsPage } from "@/pages/events/MyEvents";
 import { ProfilePage } from "@/pages/Profile";
+import { EditProfilePage } from "@/pages/Profile/EditProfile";
+import { DeleteProfilePage } from "@/pages/Profile/DeleteProfile";
 
 export default function App() {
   return (
@@ -33,6 +35,8 @@ export default function App() {
             <Route path="/events" element={<MyEventsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/:id" element={<ProfilePage />} />
+            <Route path="/profile/edit" element={<EditProfilePage />} />
+            <Route path="/profile/delete" element={<DeleteProfilePage />} />
           </Route>
         </Route>
 
