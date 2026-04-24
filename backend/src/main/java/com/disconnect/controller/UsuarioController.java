@@ -1,183 +1,135 @@
 package com.disconnect.controller;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.List;
+import static spark.Spark.delete;
+import static spark.Spark.get;
+import static spark.Spark.post;
+import static spark.Spark.put;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.disconnect.domain.Usuario;
 import com.disconnect.dto.UsuarioResponseDTO;
 import com.disconnect.service.UsuarioService;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializer; // Sim, tem uma biblioteca chamada Gson com G KKKKK O cara que pensou nisso deve ter se sentido um Jên...Gênio. Mas enfim, ela serve pra traduzir Json. Nativamente o Java não traduz. Lembrem que o controller que converte o objeto java pro front em formato de Json já tratado e bonitinho
 
-// Endpoint de rede para a entidade Usuario. Mapeia a URL base "/api/usuarios/*", para interceptar requisições do React.
-@WebServlet("/api/usuarios/*")
-public class UsuarioController extends HttpServlet {
+public class UsuarioController {
 
-    private UsuarioService usuarioService;
-    private Gson gson;
+    private final UsuarioService usuarioService;
+    private final Gson gson;
 
-    // O método init() é chamado pelo servidor (ex: Tomcat) quando ele "liga", porque o back que fica "ouvindo" e o front "chamando".
-    @Override
-    public void init() throws ServletException {
-        this.usuarioService = new UsuarioService();
-        this.gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, (JsonSerializer<LocalDateTime>) (src, typeOfSrc, context)
-                        -> new JsonPrimitive(src.toString())) // Na hora de virar JSON, converte a data para String
-                .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>) (json, typeOfT, context)
-                        -> LocalDateTime.parse(json.getAsString())) // Na hora de ler o JSON, converte a String para Data
-                .create();
+    public UsuarioController(UsuarioService usuarioService, Gson gson) {
+        this.usuarioService = usuarioService;
+        this.gson = gson;
     }
 
-    private void setAccessControlHeaders(HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:5173"); // Permite que o Vite converse com o Java
-        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    }
+    public void registerRoutes() {
+        post("/api/usuarios", (request, response) -> {
+            response.type("application/json");
 
-    // Navegadores fazem uma requisição OPTIONS "fantasma" antes de qualquer POST/PUT/DELETE.
-    // O Controller precisa responder 200 OK para essa requisição fantasma.
-    @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setAccessControlHeaders(resp);
-        resp.setStatus(HttpServletResponse.SC_OK);
-    }
+            try {
+                Usuario usuarioDaRequisicao = gson.fromJson(request.body(), Usuario.class);
+                if (usuarioDaRequisicao == null) {
+                    throw new IllegalArgumentException("Corpo da requisicao invalido.");
+                }
 
-    // CREATE ('C' do Crud): POST /api/usuarios
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setAccessControlHeaders(resp);
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+                Usuario usuarioCriado = usuarioService.registarUsuario(usuarioDaRequisicao);
+                response.status(201);
+                return gson.toJson(new UsuarioResponseDTO(usuarioCriado));
+            } catch (IllegalArgumentException e) {
+                response.status(400);
+                return errorJson(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.status(500);
+                return errorJson("Erro interno do servidor.");
+            }
+        });
 
-        try {
-            // Lê o JSON que veio do corpo (body) da requisição HTTP (enviado pelo React)
-            BufferedReader reader = req.getReader();
+        get("/api/usuarios", (request, response) -> {
+            response.type("application/json");
 
-            // Transforma o texto JSON da internet no objeto Java 'Usuario'
-            Usuario usuarioDaRequisicao = gson.fromJson(reader, Usuario.class);
+            try {
+                String nomeParam = request.queryParams("nome");
+                if (nomeParam == null || nomeParam.trim().isEmpty()) {
+                    response.status(400);
+                    return errorJson("Forneca um parametro ?nome=");
+                }
 
-            // Entrega o objeto para o Service validar as regras de negócio
-            Usuario usuarioCriado = usuarioService.registarUsuario(usuarioDaRequisicao);
+                List<UsuarioResponseDTO> resultados = usuarioService.buscarPorNome(nomeParam).stream()
+                        .map(UsuarioResponseDTO::new)
+                        .collect(Collectors.toList());
+                response.status(200);
+                return gson.toJson(resultados);
+            } catch (IllegalArgumentException e) {
+                response.status(400);
+                return errorJson(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.status(500);
+                return errorJson("Erro interno do servidor.");
+            }
+        });
 
-            // Se deu certo, transforma o objeto de volta em JSON e envia com código 201 (Created)
-            resp.setStatus(HttpServletResponse.SC_CREATED);
-            UsuarioResponseDTO dto = new UsuarioResponseDTO(usuarioCriado);
-            resp.getWriter().write(gson.toJson(dto));
+        get("/api/usuarios/:id", (request, response) -> {
+            response.type("application/json");
 
-        } catch (IllegalArgumentException e) {
-            // Se o Service lançou o "Fail Fast" (ex: e-mail sem '@'), o Controller, devolve um Erro 400 avisando que a culpa é do usuário
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"erro\": \"" + e.getMessage() + "\"}");
-        } catch (Exception e) {
-            // Se o banco de dados cair, devolvemos 500 (Internal Server Error)
-            e.printStackTrace();
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"erro\": \"Erro interno do servidor.\"}");
-        }
-    }
-
-    // READ: GET ('R' do Crud) /api/usuarios/12  (Por ID)  OU   GET /api/usuarios?nome=Julia
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setAccessControlHeaders(resp);
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
-        try {
-            String pathInfo = req.getPathInfo(); // Pega o que vem depois de /api/usuarios/
-            String nomeParam = req.getParameter("nome"); // Pega o que vem depois do ?nome=
-
-            if (nomeParam != null && !nomeParam.trim().isEmpty()) {
-
-                // Rota: Busca por Nome (O normal de pesquisar no Front)
-                List<Usuario> resultados = usuarioService.buscarPorNome(nomeParam);
-                resp.getWriter().write(gson.toJson(resultados));
-                resp.setStatus(HttpServletResponse.SC_OK);
-
-            } else if (pathInfo != null && pathInfo.length() > 1) {
-                // Rota: Busca por ID (ex: extrai o '12' de "/12")
-                Integer id = Integer.parseInt(pathInfo.substring(1));
+            try {
+                Integer id = Integer.parseInt(request.params(":id"));
                 Usuario usuario = usuarioService.buscarPorId(id);
-                resp.getWriter().write(gson.toJson(usuario));
-                resp.setStatus(HttpServletResponse.SC_OK);
-
-            } else {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write("{\"erro\": \"Forneça um ID na URL ou um parâmetro ?nome=\"}");
+                response.status(200);
+                return gson.toJson(new UsuarioResponseDTO(usuario));
+            } catch (IllegalArgumentException e) {
+                response.status(400);
+                return errorJson(e.getMessage());
+            } catch (RuntimeException e) {
+                response.status(404);
+                return errorJson(e.getMessage());
             }
+        });
 
-        } catch (RuntimeException e) {
-            // Se o Service não achar o usuário, devolvemos o clássico Erro 404 (Not Found)
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+        put("/api/usuarios/:id", (request, response) -> {
+            response.type("application/json");
+
+            try {
+                Integer id = Integer.parseInt(request.params(":id"));
+                Usuario dadosAtualizados = gson.fromJson(request.body(), Usuario.class);
+                if (dadosAtualizados == null) {
+                    throw new IllegalArgumentException("Corpo da requisicao invalido.");
+                }
+
+                Usuario usuarioSalvo = usuarioService.atualizarUsuario(id, dadosAtualizados);
+                response.status(200);
+                return gson.toJson(new UsuarioResponseDTO(usuarioSalvo));
+            } catch (IllegalArgumentException e) {
+                response.status(400);
+                return errorJson(e.getMessage());
+            } catch (RuntimeException e) {
+                response.status(404);
+                return errorJson(e.getMessage());
+            }
+        });
+
+        delete("/api/usuarios/:id", (request, response) -> {
+            response.type("application/json");
+
+            try {
+                Integer id = Integer.parseInt(request.params(":id"));
+                usuarioService.eliminarUsuario(id);
+                response.status(204);
+                return "";
+            } catch (IllegalArgumentException e) {
+                response.status(400);
+                return errorJson(e.getMessage());
+            } catch (RuntimeException e) {
+                response.status(404);
+                return errorJson(e.getMessage());
+            }
+        });
     }
 
-    // UPDATE: PUT ('U' do Crud) /api/usuarios/12
-    @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setAccessControlHeaders(resp);
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
-        try {
-            String pathInfo = req.getPathInfo();
-            if (pathInfo == null || pathInfo.length() <= 1) {
-                throw new IllegalArgumentException("ID do utilizador é obrigatório para atualização.");
-            }
-
-            Integer id = Integer.parseInt(pathInfo.substring(1));
-            BufferedReader reader = req.getReader();
-            Usuario dadosAtualizados = gson.fromJson(reader, Usuario.class);
-
-            Usuario usuarioSalvo = usuarioService.atualizarUsuario(id, dadosAtualizados);
-
-            resp.setStatus(HttpServletResponse.SC_OK); // 200 OK
-            resp.getWriter().write(gson.toJson(usuarioSalvo));
-
-        } catch (IllegalArgumentException e) {
-            // Cai aqui se o ID não for passado na URL (Erro do Front)
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST); // HTTP 400
-            resp.getWriter().write("{\"erro\": \"" + e.getMessage() + "\"}");
-
-        } catch (RuntimeException e) {
-            // Cai aqui se o UsuarioService não encontrar o ID no banco
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND); // HTTP 404
-            resp.getWriter().write("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
-    }
-
-    // DELETE: ('D' do Crud) /api/usuarios/12
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        setAccessControlHeaders(resp);
-        resp.setContentType("application/json");
-
-        try {
-            String pathInfo = req.getPathInfo();
-            if (pathInfo == null || pathInfo.length() <= 1) {
-                throw new IllegalArgumentException("ID do utilizador é obrigatório para exclusão.");
-            }
-
-            Integer id = Integer.parseInt(pathInfo.substring(1));
-            usuarioService.eliminarUsuario(id);
-
-            resp.setStatus(HttpServletResponse.SC_NO_CONTENT); // Código 204: Deletado com sucesso, não há mais dados para exibir.
-
-        } catch (RuntimeException e) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404
-            resp.getWriter().write("{\"erro\": \"" + e.getMessage() + "\"}");
-        }
+    private String errorJson(String message) {
+        return gson.toJson(Map.of("erro", message));
     }
 }
