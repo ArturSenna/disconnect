@@ -10,10 +10,9 @@ import java.sql.SQLException;
  */
 public class ConnectionFactory {
 
-    // Constantes de conexão  (por enquanto tá hardcoded aqui)
-    private static final String URL = "jdbc:postgresql://localhost:5432/disconnect_db";
-    private static final String USER = "postgres";
-    private static final String PASS = "uma_senha_qualquer";
+    private static final String URL = AppConfig.get("spring.datasource.url", "jdbc:postgresql://localhost:5432/disconnect_db");
+    private static final String USER = AppConfig.get("spring.datasource.username", "postgres");
+    private static final String PASS = AppConfig.get("spring.datasource.password", "uma_senha_qualquer");
 
     /**
      * Estabelece e retorna uma conexão física com o banco de dados.

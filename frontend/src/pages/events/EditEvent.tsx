@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { eventoService } from "@/services/eventoService";
 import type { Evento, CreateEventoDTO } from "@/types";
 import { EventForm } from "./EventForm";
-import styles from "./EventForm.module.css";
 
 export function EditEventPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,7 +13,11 @@ export function EditEventPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      navigate("/events", { replace: true });
+      return;
+    }
+
     eventoService.getById(Number(id)).then((ev) => {
       if (!ev) {
         navigate("/events", { replace: true });
@@ -31,23 +34,30 @@ export function EditEventPage() {
   }, [id, user, navigate]);
 
   async function handleUpdate(dto: CreateEventoDTO) {
-    if (!evento) return;
+    if (!evento) {
+      throw new Error("Evento não encontrado.");
+    }
+
     await eventoService.update(evento.id, dto);
-    navigate(`/events/${evento.id}`);
   }
 
   if (loading) {
     return <p style={{ color: "var(--color-text-muted)" }}>Carregando...</p>;
   }
 
+  if (!evento) {
+    return null;
+  }
+
   return (
-    <div>
-      <h1 className={styles.title}>Editar evento</h1>
-      <EventForm
-        initial={evento!}
-        onSubmit={handleUpdate}
-        submitLabel="Salvar alterações"
-      />
-    </div>
+    <EventForm
+      title="Editar Evento"
+      initial={evento}
+      onSubmit={handleUpdate}
+      submitLabel="Salvar Alterações"
+      successMessage="Evento atualizado com sucesso!"
+      errorMessage="Erro ao atualizar evento. Tente novamente."
+      redirectTo="/events"
+    />
   );
 }
