@@ -1,19 +1,17 @@
 package com.disconnect.controller;
 
-import static spark.Spark.delete;
-import static spark.Spark.get;
-import static spark.Spark.post;
-import static spark.Spark.put;
-
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import com.disconnect.domain.Usuario;
 import com.disconnect.dto.UsuarioResponseDTO;
 import com.disconnect.service.UsuarioService;
 import com.google.gson.Gson;
+
+import static spark.Spark.delete;
+import static spark.Spark.get;
+import static spark.Spark.post;
+import static spark.Spark.put;
 
 public class UsuarioController {
 
@@ -26,123 +24,129 @@ public class UsuarioController {
     }
 
     public void registerRoutes() {
-        post("/api/usuarios", (request, response) -> {
-            response.type("application/json");
 
+        post("/api/usuarios", (req, res) -> {
             try {
-                Usuario usuarioDaRequisicao = gson.fromJson(request.body(), Usuario.class);
-                if (usuarioDaRequisicao == null) {
-                    throw new IllegalArgumentException("Corpo da requisicao invalido.");
-                }
+                Usuario usuarioDaRequisicao = gson.fromJson(req.body(), Usuario.class);
 
                 Usuario usuarioCriado = usuarioService.registarUsuario(usuarioDaRequisicao);
-                response.status(201);
+
+                res.status(201);
                 return gson.toJson(new UsuarioResponseDTO(usuarioCriado));
+
             } catch (IllegalArgumentException e) {
-                response.status(400);
-                return errorJson(e.getMessage());
+                res.status(400);
+                return erro(e.getMessage());
+
             } catch (Exception e) {
                 e.printStackTrace();
-                response.status(500);
-                return errorJson("Erro interno do servidor.");
+                res.status(500);
+                return erro("Erro interno do servidor.");
             }
         });
 
-        get("/api/usuarios", (request, response) -> {
-            response.type("application/json");
-
+        get("/api/usuarios/:id", (req, res) -> {
             try {
-                String nomeParam = request.queryParams("nome");
-                if (nomeParam == null || nomeParam.trim().isEmpty()) {
-                    response.status(400);
-                    return errorJson("Forneca um parametro ?nome=");
+                Integer id = Integer.parseInt(req.params(":id"));
+
+                Usuario usuario = usuarioService.buscarPorId(id);
+
+                res.status(200);
+                return gson.toJson(new UsuarioResponseDTO(usuario));
+
+            } catch (NumberFormatException e) {
+                res.status(400);
+                return erro("ID inválido.");
+
+            } catch (RuntimeException e) {
+                res.status(404);
+                return erro(e.getMessage());
+            }
+        });
+
+        get("/api/usuarios", (req, res) -> {
+            try {
+                String nome = req.queryParams("nome");
+
+                if (nome == null || nome.trim().isEmpty()) {
+                    res.status(400);
+                    return erro("Forneça o parâmetro ?nome=");
                 }
 
-                List<UsuarioResponseDTO> resultados = usuarioService.buscarPorNome(nomeParam).stream()
+                List<Usuario> usuarios = usuarioService.buscarPorNome(nome);
+
+                List<UsuarioResponseDTO> resposta = usuarios.stream()
                         .map(UsuarioResponseDTO::new)
                         .collect(Collectors.toList());
-                response.status(200);
-                return gson.toJson(resultados);
+
+                res.status(200);
+                return gson.toJson(resposta);
+
             } catch (IllegalArgumentException e) {
-                response.status(400);
-                return errorJson(e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                response.status(500);
-                return errorJson("Erro interno do servidor.");
+                res.status(400);
+                return erro(e.getMessage());
+
+            } catch (RuntimeException e) {
+                res.status(500);
+                return erro("Erro ao buscar usuários.");
             }
         });
 
-        get("/api/usuarios/:id", (request, response) -> {
-            response.type("application/json");
-
+        put("/api/usuarios/:id", (req, res) -> {
             try {
-                Integer id = Integer.parseInt(request.params(":id"));
-                Usuario usuario = usuarioService.buscarPorId(id);
-                response.status(200);
-                return gson.toJson(new UsuarioResponseDTO(usuario));
-            } catch (IllegalArgumentException e) {
-                response.status(400);
-                return errorJson(e.getMessage());
-            } catch (NoSuchElementException e) {
-                response.status(404);
-                return errorJson(e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                response.status(500);
-                return errorJson("Erro interno do servidor.");
-            }
-        });
+                Integer id = Integer.parseInt(req.params(":id"));
 
-        put("/api/usuarios/:id", (request, response) -> {
-            response.type("application/json");
-
-            try {
-                Integer id = Integer.parseInt(request.params(":id"));
-                Usuario dadosAtualizados = gson.fromJson(request.body(), Usuario.class);
-                if (dadosAtualizados == null) {
-                    throw new IllegalArgumentException("Corpo da requisicao invalido.");
-                }
+                Usuario dadosAtualizados = gson.fromJson(req.body(), Usuario.class);
 
                 Usuario usuarioSalvo = usuarioService.atualizarUsuario(id, dadosAtualizados);
-                response.status(200);
+
+                res.status(200);
                 return gson.toJson(new UsuarioResponseDTO(usuarioSalvo));
+
+            } catch (NumberFormatException e) {
+                res.status(400);
+                return erro("ID inválido.");
+
             } catch (IllegalArgumentException e) {
-                response.status(400);
-                return errorJson(e.getMessage());
-            } catch (NoSuchElementException e) {
-                response.status(404);
-                return errorJson(e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                response.status(500);
-                return errorJson("Erro interno do servidor.");
+                res.status(400);
+                return erro(e.getMessage());
+
+            } catch (RuntimeException e) {
+                res.status(404);
+                return erro(e.getMessage());
             }
         });
 
-        delete("/api/usuarios/:id", (request, response) -> {
-            response.type("application/json");
-
+        delete("/api/usuarios/:id", (req, res) -> {
             try {
-                Integer id = Integer.parseInt(request.params(":id"));
+                Integer id = Integer.parseInt(req.params(":id"));
+
                 usuarioService.eliminarUsuario(id);
-                response.status(204);
+
+                res.status(204);
                 return "";
-            } catch (IllegalArgumentException e) {
-                response.status(400);
-                return errorJson(e.getMessage());
-            } catch (NoSuchElementException e) {
-                response.status(404);
-                return errorJson(e.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-                response.status(500);
-                return errorJson("Erro interno do servidor.");
+
+            } catch (NumberFormatException e) {
+                res.status(400);
+                return erro("ID inválido.");
+
+            } catch (RuntimeException e) {
+                res.status(404);
+                return erro(e.getMessage());
             }
         });
     }
 
-    private String errorJson(String message) {
-        return gson.toJson(Map.of("erro", message));
+    private String erro(String mensagem) {
+        return gson.toJson(new MensagemErro(mensagem));
+    }
+
+    private static class MensagemErro {
+
+        private final String erro;
+
+        private MensagemErro(String erro) {
+            this.erro = erro;
+        }
     }
 }
