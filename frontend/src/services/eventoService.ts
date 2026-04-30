@@ -1,69 +1,48 @@
 import type { Evento, CreateEventoDTO, UpdateEventoDTO } from "@/types";
-import { mockEventos, mockCategorias, mockUsuarios } from "@/mocks/data";
-
-const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
+import { api } from "@/services/api";
 
 export const eventoService = {
   async list(): Promise<Evento[]> {
-    await delay();
-    return [...mockEventos];
+    return api.get<Evento[]>("/eventos");
   },
 
   async getById(id: number): Promise<Evento | undefined> {
-    await delay();
-    return mockEventos.find((e) => e.id === id);
+    try {
+      return await api.get<Evento>(`/eventos/${id}`);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("nao foi encontrado") ||
+          error.message.includes("não foi encontrado") ||
+          error.message.includes("HTTP Error 404"))
+      ) {
+        return undefined;
+      }
+
+      throw error;
+    }
   },
 
   async listByOrganizador(organizadorId: number): Promise<Evento[]> {
-    await delay();
-    return mockEventos.filter((e) => e.organizador.id === organizadorId);
+    return api.get<Evento[]>(`/eventos?organizadorId=${organizadorId}`);
   },
 
   async create(dto: CreateEventoDTO, organizadorId: number): Promise<Evento> {
-    await delay();
-    const organizador = mockUsuarios.find((u) => u.id === organizadorId)!;
-    const categorias = mockCategorias.filter((c) =>
-      dto.categoriaIds.includes(c.id),
-    );
-    const newEvento: Evento = {
-      id: mockEventos.length + 1,
-      nome: dto.nome,
-      dataEvento: dto.dataEvento,
-      local: dto.local,
-      frequencia: dto.frequencia,
-      fotoUrl: dto.fotoUrl,
-      organizador,
-      categorias,
-      dataCriacao: new Date().toISOString(),
-    };
-    mockEventos.push(newEvento);
-    return { ...newEvento };
+    return api.post<Evento>(`/eventos?organizadorId=${organizadorId}`, dto);
   },
 
   async update(id: number, dto: UpdateEventoDTO): Promise<Evento> {
-    await delay();
-    const idx = mockEventos.findIndex((e) => e.id === id);
-    if (idx === -1) throw new Error("Evento não encontrado.");
-    const updated = { ...mockEventos[idx], ...dto };
-    if (dto.categoriaIds) {
-      updated.categorias = mockCategorias.filter((c) =>
-        dto.categoriaIds!.includes(c.id),
-      );
-    }
-    mockEventos[idx] = updated;
-    return { ...updated };
+    return api.put<Evento>(`/eventos/${id}`, dto);
   },
 
   async remove(id: number): Promise<void> {
-    await delay();
-    const idx = mockEventos.findIndex((e) => e.id === id);
-    if (idx !== -1) mockEventos.splice(idx, 1);
+    await api.delete<void>(`/eventos/${id}`);
   },
 
   async search(query: string): Promise<Evento[]> {
-    await delay();
+    const eventos = await api.get<Evento[]>("/eventos");
     const q = query.toLowerCase();
-    return mockEventos.filter(
+    return eventos.filter(
       (e) =>
         e.nome.toLowerCase().includes(q) ||
         e.local.toLowerCase().includes(q) ||

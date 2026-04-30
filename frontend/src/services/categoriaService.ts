@@ -1,17 +1,14 @@
 import type { Categoria } from "@/types";
-import { mockCategorias } from "@/mocks/data";
-
-const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
+import { api } from "@/services/api";
 
 export const categoriaService = {
   async list(): Promise<Categoria[]> {
-    await delay();
-    return [...mockCategorias];
+    return api.get<Categoria[]>("/categorias");
   },
 
   async getByNome(nome: string): Promise<Categoria[]> {
-    await delay();
-    return mockCategorias.filter(
+    const categorias = await api.get<Categoria[]>("/categorias");
+    return categorias.filter(
       (c) => c.nome.toLowerCase() === nome.toLowerCase(),
     );
   },

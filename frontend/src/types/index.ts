@@ -9,6 +9,7 @@ export type StatusParticipacao = "PENDENTE" | "APROVADO" | "RECUSADO";
 export interface Usuario {
   id: number;
   nome: string;
+  email?: string;
   login: string;
   idade?: number;
   biografia?: string;
@@ -25,10 +26,19 @@ export interface Categoria {
 export interface Evento {
   id: number;
   nome: string;
+  descricao?: string;
   dataEvento: string; // ISO date string
   local: string;
   frequencia: FrequenciaEvento;
   fotoUrl?: string; // Cloudinary image URL
+  diasDaSemana?: string[];
+  diasDoMes?: number[];
+  quantMinimaPessoas?: number;
+  quantMaximaPessoas?: number;
+  participantesInscritos?: number;
+  modalidadeHobby?: string;
+  nivelDeHabilidade?: string;
+  status?: string;
   organizador: Usuario;
   categorias: Categoria[];
   dataCriacao: string;
@@ -69,6 +79,7 @@ export interface UpdateUsuarioDTO {
   email?: string;
   idade?: number;
   biografia?: string;
+  urlFoto?: string;
 }
 
 export interface LoginDTO {
@@ -78,20 +89,38 @@ export interface LoginDTO {
 
 export interface CreateEventoDTO {
   nome: string;
+  descricao: string;
   dataEvento: string;
   local: string;
   frequencia: FrequenciaEvento;
   categoriaIds: number[];
   fotoUrl?: string;
+  diasDaSemana?: string[];
+  diasDoMes?: number[];
+  quantMinimaPessoas: number;
+  quantMaximaPessoas: number;
+  participantesInscritos?: number;
+  modalidadeHobby?: string;
+  nivelDeHabilidade?: string;
+  status?: string;
 }
 
 export interface UpdateEventoDTO {
   nome?: string;
+  descricao?: string;
   dataEvento?: string;
   local?: string;
   frequencia?: FrequenciaEvento;
   categoriaIds?: number[];
   fotoUrl?: string;
+  diasDaSemana?: string[];
+  diasDoMes?: number[];
+  quantMinimaPessoas?: number;
+  quantMaximaPessoas?: number;
+  participantesInscritos?: number;
+  modalidadeHobby?: string;
+  nivelDeHabilidade?: string;
+  status?: string;
 }
 
 export interface CreateAvaliacaoDTO {

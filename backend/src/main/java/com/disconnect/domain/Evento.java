@@ -1,6 +1,7 @@
 package com.disconnect.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.disconnect.domain.enums.FrequenciaEvento;
@@ -9,28 +10,39 @@ public class Evento {
 
     private Integer id;
     private String nome;
+    private String descricao;
     private LocalDateTime dataEvento;
     private String localizacao;
     private FrequenciaEvento frequencia;
+    private String urlFoto;
+    private List<String> diasDaSemana;
+    private List<Integer> diasDoMes;
+    private Integer quantMinimaPessoas;
+    private Integer quantMaximaPessoas;
+    private String nivelDeHabilidade;
+    private String status;
 
-    // Bruno, aqui sobre o relacionamento (1 Evento tem 1 Organizador) eu dei uma 'interpretada' no seu modelo relacional, dependendo, pode mudar
     private Usuario organizador;
 
-    // Aqui nesse relacionamento (1 Evento tem Várias Categorias - M:N) também não sei se está exato
     private List<Modalidade> modalidades;
 
     private LocalDateTime dataCriacao;
 
     public Evento() {
+        this.diasDaSemana = new ArrayList<>();
+        this.diasDoMes = new ArrayList<>();
+        this.modalidades = new ArrayList<>();
     }
 
     public Evento(Integer id, String nome, LocalDateTime dataEvento, String localizacao, FrequenciaEvento frequencia, Usuario organizador) {
+        this();
         this.id = id;
         this.nome = nome;
         this.dataEvento = dataEvento;
         this.localizacao = localizacao;
         this.frequencia = frequencia;
         this.organizador = organizador;
+        this.status = "Ativo";
         this.dataCriacao = LocalDateTime.now();
     }
 
@@ -48,6 +60,14 @@ public class Evento {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 
     public LocalDateTime getDataEvento() {
@@ -74,6 +94,62 @@ public class Evento {
         this.frequencia = frequencia;
     }
 
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
+    public void setUrlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
+    }
+
+    public List<String> getDiasDaSemana() {
+        return diasDaSemana;
+    }
+
+    public void setDiasDaSemana(List<String> diasDaSemana) {
+        this.diasDaSemana = diasDaSemana != null ? diasDaSemana : new ArrayList<>();
+    }
+
+    public List<Integer> getDiasDoMes() {
+        return diasDoMes;
+    }
+
+    public void setDiasDoMes(List<Integer> diasDoMes) {
+        this.diasDoMes = diasDoMes != null ? diasDoMes : new ArrayList<>();
+    }
+
+    public Integer getQuantMinimaPessoas() {
+        return quantMinimaPessoas;
+    }
+
+    public void setQuantMinimaPessoas(Integer quantMinimaPessoas) {
+        this.quantMinimaPessoas = quantMinimaPessoas;
+    }
+
+    public Integer getQuantMaximaPessoas() {
+        return quantMaximaPessoas;
+    }
+
+    public void setQuantMaximaPessoas(Integer quantMaximaPessoas) {
+        this.quantMaximaPessoas = quantMaximaPessoas;
+    }
+
+    public String getNivelDeHabilidade() {
+        return nivelDeHabilidade;
+    }
+
+    public void setNivelDeHabilidade(String nivelDeHabilidade) {
+        this.nivelDeHabilidade = nivelDeHabilidade;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public Usuario getOrganizador() {
         return organizador;
     }
@@ -87,7 +163,7 @@ public class Evento {
     }
 
     public void setModalidades(List<Modalidade> modalidades) {
-        this.modalidades = modalidades;
+        this.modalidades = modalidades != null ? modalidades : new ArrayList<>();
     }
 
     public LocalDateTime getDataCriacao() {

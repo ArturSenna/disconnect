@@ -69,24 +69,48 @@ export function EventDetailsPage() {
 
   async function handleJoin() {
     if (!evento || !user) return;
-    await participacaoService.create({ eventoId: evento.id }, user.id);
-    showToast("Solicitação enviada!");
-    const parts = await participacaoService.listByEvento(evento.id);
-    setParticipacoes(parts);
+    try {
+      await participacaoService.create({ eventoId: evento.id }, user.id);
+      showToast("Solicitação enviada!");
+      const parts = await participacaoService.listByEvento(evento.id);
+      setParticipacoes(parts);
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Erro ao solicitar participação.",
+      );
+    }
   }
 
   async function handleApprove(partId: number) {
-    await participacaoService.approve(partId);
-    showToast("Participante aprovado!");
-    const parts = await participacaoService.listByEvento(evento!.id);
-    setParticipacoes(parts);
+    try {
+      await participacaoService.approve(partId);
+      showToast("Participante aprovado!");
+      const parts = await participacaoService.listByEvento(evento!.id);
+      setParticipacoes(parts);
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Erro ao aprovar participação.",
+      );
+    }
   }
 
   async function handleReject(partId: number) {
-    await participacaoService.reject(partId);
-    showToast("Participante recusado.");
-    const parts = await participacaoService.listByEvento(evento!.id);
-    setParticipacoes(parts);
+    try {
+      await participacaoService.reject(partId);
+      showToast("Participante recusado.");
+      const parts = await participacaoService.listByEvento(evento!.id);
+      setParticipacoes(parts);
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Erro ao recusar participação.",
+      );
+    }
   }
 
   async function handleDelete() {

@@ -1,6 +1,7 @@
 package com.disconnect.service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import com.disconnect.dao.UsuarioDAO;
 import com.disconnect.domain.Usuario;
@@ -30,6 +31,10 @@ public class UsuarioService {
             throw new IllegalArgumentException("O formato do e-mail fornecido é inválido.");
         }
 
+        if (usuario.getLogin() == null || usuario.getLogin().trim().isEmpty()) {
+            throw new IllegalArgumentException("O login do utilizador é obrigatório e não pode estar vazio.");
+        }
+
         if (usuario.getSenha() == null || usuario.getSenha().length() < 6) {
             throw new IllegalArgumentException("Por razões de segurança, a palavra-passe deve ter no mínimo 6 caracteres.");
         }
@@ -53,7 +58,7 @@ public class UsuarioService {
 
         if (usuarioEncontrado == null) {
 
-            throw new RuntimeException("Utilizador com o ID " + id + " não foi encontrado na base de dados.");
+            throw new NoSuchElementException("Utilizador com o ID " + id + " não foi encontrado na base de dados.");
         }
 
         return usuarioEncontrado;
@@ -80,7 +85,21 @@ public class UsuarioService {
 
         // Aplicar apenas os campos permitidos 
         if (dadosAtualizados.getNome() != null && !dadosAtualizados.getNome().trim().isEmpty()) {
-            usuarioExistente.setNome(dadosAtualizados.getNome());
+            usuarioExistente.setNome(dadosAtualizados.getNome().trim());
+        }
+
+        if (dadosAtualizados.getEmail() != null) {
+            if (!dadosAtualizados.getEmail().contains("@")) {
+                throw new IllegalArgumentException("O formato do e-mail fornecido é inválido.");
+            }
+            usuarioExistente.setEmail(dadosAtualizados.getEmail().trim());
+        }
+
+        if (dadosAtualizados.getIdade() != null) {
+            if (dadosAtualizados.getIdade() < 12) {
+                throw new IllegalArgumentException("O utilizador deve ter pelo menos 12 anos para usar a plataforma.");
+            }
+            usuarioExistente.setIdade(dadosAtualizados.getIdade());
         }
 
         if (dadosAtualizados.getBiografia() != null) {

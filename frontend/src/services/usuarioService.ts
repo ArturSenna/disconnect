@@ -2,14 +2,28 @@ import { api } from "./api";
 import type { Usuario, UpdateUsuarioDTO } from "@/types";
 
 export const usuarioService = {
+  async buscarPorId(id: number): Promise<Usuario | undefined> {
+    try {
+      return await api.get<Usuario>(`/usuarios/${id}`);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("nao foi encontrado") ||
+          error.message.includes("não foi encontrado") ||
+          error.message.includes("HTTP Error 404"))
+      ) {
+        return undefined;
+      }
+
+      throw error;
+    }
+  },
+
   /**
    * Rota de Front-end (Service) para atualizar os dados do utilizador.
    * Dispara um PUT para /api/usuarios/{id} no Back-end Java.
    */
-  async atualizarPerfil(
-    id: number,
-    dados: UpdateUsuarioDTO,
-  ): Promise<Usuario> {
+  async atualizarPerfil(id: number, dados: UpdateUsuarioDTO): Promise<Usuario> {
     return api.put<Usuario>(`/usuarios/${id}`, dados);
   },
 
