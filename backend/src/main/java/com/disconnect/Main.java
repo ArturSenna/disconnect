@@ -1,11 +1,5 @@
 package com.disconnect;
 
-import static spark.Spark.awaitInitialization;
-import static spark.Spark.before;
-import static spark.Spark.get;
-import static spark.Spark.options;
-import static spark.Spark.port;
-
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -20,6 +14,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
+
+import static spark.Spark.awaitInitialization;
+import static spark.Spark.before;
+import static spark.Spark.get;
+import static spark.Spark.options;
+import static spark.Spark.port;
 
 public class Main {
 

@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 
 import com.disconnect.dao.UsuarioDAO;
 import com.disconnect.domain.Usuario;
+import com.disconnect.util.PasswordUtil;
 
 //  Camada de Lógica de Negócio para o domínio de usuarios. Responsável por aplicar validações, regras de segurança e fazer as chamadas ao DAO.
 public class UsuarioService {
@@ -45,7 +46,12 @@ public class UsuarioService {
 
         // 2. Enviar para a camada de persistência
         // Se todas as regras de negócio passarem, chamamos o DAO.
+        // mas antes criptografa ne 
+        String senhaHash = PasswordUtil.gerarHash(usuario.getSenha());
+        usuario.setSenha(senhaHash);
+
         return usuarioDAO.inserir(usuario);
+
     }
 
     // R do CRUD...
@@ -140,7 +146,7 @@ public class UsuarioService {
 
         Usuario usuarioBanco = usuarioDAO.buscarPorLogin(login);
 
-        if (usuarioBanco == null || !usuarioBanco.getSenha().equals(senha)) {
+        if (usuarioBanco == null || !PasswordUtil.verificarSenha(senha, usuarioBanco.getSenha())) {
             throw new IllegalArgumentException("Usuário ou senha inválidos.");
         }
 
