@@ -9,6 +9,7 @@ public class UsuarioResponseDTO {
 
     private Integer id;
     private String nome;
+    private String email;
     private String login; // O "@username"
     private Integer idade;
     private String biografia;
@@ -21,6 +22,7 @@ public class UsuarioResponseDTO {
     public UsuarioResponseDTO(Usuario usuario) {
         this.id = usuario.getId();
         this.nome = usuario.getNome();
+        this.email = usuario.getEmail();
         this.login = usuario.getLogin();
         this.idade = usuario.getIdade();
         this.biografia = usuario.getBiografia();
@@ -34,6 +36,10 @@ public class UsuarioResponseDTO {
 
     public String getNome() {
         return nome;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public String getLogin() {
@@ -62,6 +68,10 @@ public class UsuarioResponseDTO {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public void setLogin(String login) {

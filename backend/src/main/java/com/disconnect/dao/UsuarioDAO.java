@@ -55,8 +55,26 @@ public class UsuarioDAO {
             return usuario; // Retorna um objeto de Java mesmo, com um ID SERIAL gerado automaticamente pelo postgre, por isso não podia colocar la la no SQL chave privada como int, senão teria que tratar do ID aqui
 
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao persistir Usuario no banco: " + e.getMessage(), e);
+            throw translateInsertException(e);
         }
+    }
+
+    private RuntimeException translateInsertException(SQLException e) {
+        if ("23505".equals(e.getSQLState())) {
+            String message = e.getMessage() != null ? e.getMessage() : "";
+
+            if (message.contains("usuario_email_key")) {
+                return new IllegalArgumentException("Já existe um usuário cadastrado com este e-mail.");
+            }
+
+            if (message.contains("usuario_login_key")) {
+                return new IllegalArgumentException("Já existe um usuário cadastrado com este login.");
+            }
+
+            return new IllegalArgumentException("Já existe um usuário cadastrado com estes dados.");
+        }
+
+        return new RuntimeException("Erro ao inserir Usuário no banco: " + e.getMessage(), e);
     }
 
     // Essa função de buscar é o 'R' DO CRUD, essa busca especificamente por ID. Podem ser implementadas outras funções semelhantes pra buscar por qualquer coisa (nome por ex).

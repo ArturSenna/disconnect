@@ -9,6 +9,7 @@ export type StatusParticipacao = "PENDENTE" | "APROVADO" | "RECUSADO";
 export interface Usuario {
   id: number;
   nome: string;
+  email?: string;
   login: string;
   idade?: number;
   biografia?: string;
@@ -78,6 +79,7 @@ export interface UpdateUsuarioDTO {
   email?: string;
   idade?: number;
   biografia?: string;
+  urlFoto?: string;
 }
 
 export interface LoginDTO {

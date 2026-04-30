@@ -1,5 +1,6 @@
 package com.disconnect.controller;
 
+import static spark.Spark.get;
 import static spark.Spark.post;
 
 import java.util.Map;
@@ -21,6 +22,12 @@ public class AuthController {
     }
 
     public void registerRoutes() {
+        get("/api/login", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+            return errorJson("Use POST /api/login para autenticar.");
+        });
+
         post("/api/login", (request, response) -> {
             response.type("application/json");
 

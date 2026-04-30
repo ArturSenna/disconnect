@@ -44,6 +44,11 @@ public class Main {
             return gson.toJson(Map.of("status", "ok"));
         });
 
+        get("/favicon.ico", (request, response) -> {
+            response.status(204);
+            return "";
+        });
+
         awaitInitialization();
         System.out.println("Servidor Spark iniciado na porta " + appPort + ".");
     }
@@ -61,22 +66,22 @@ public class Main {
         options("/*", (request, response) -> {
             String requestHeaders = request.headers("Access-Control-Request-Headers");
             if (requestHeaders != null) {
-                response.header("Access-Control-Allow-Headers", requestHeaders);
+                response.raw().setHeader("Access-Control-Allow-Headers", requestHeaders);
             }
 
             String requestMethod = request.headers("Access-Control-Request-Method");
             if (requestMethod != null) {
-                response.header("Access-Control-Allow-Methods", requestMethod);
+                response.raw().setHeader("Access-Control-Allow-Methods", requestMethod);
             }
 
-            response.header("Access-Control-Allow-Origin", allowedOrigin);
+            response.raw().setHeader("Access-Control-Allow-Origin", allowedOrigin);
             return "OK";
         });
 
         before((request, response) -> {
-            response.header("Access-Control-Allow-Origin", allowedOrigin);
-            response.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+            response.raw().setHeader("Access-Control-Allow-Origin", allowedOrigin);
+            response.raw().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.raw().setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
         });
     }
 }

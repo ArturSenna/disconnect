@@ -12,6 +12,7 @@ public class EventoRequestDTO {
     private String local;
     private FrequenciaEvento frequencia;
     private List<Integer> categoriaIds;
+    private List<Integer> modalidadeIds;
     private String fotoUrl;
     private List<String> diasDaSemana;
     private List<Integer> diasDoMes;
@@ -68,6 +69,14 @@ public class EventoRequestDTO {
 
     public void setCategoriaIds(List<Integer> categoriaIds) {
         this.categoriaIds = categoriaIds;
+    }
+
+    public List<Integer> getModalidadeIds() {
+        return modalidadeIds != null ? modalidadeIds : categoriaIds;
+    }
+
+    public void setModalidadeIds(List<Integer> modalidadeIds) {
+        this.modalidadeIds = modalidadeIds;
     }
 
     public String getFotoUrl() {

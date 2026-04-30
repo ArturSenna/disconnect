@@ -111,11 +111,98 @@ public class EventoDAO {
         }
     }
 
+    public Evento atualizar(Evento evento, List<Integer> modalidadeIds) {
+        String sql = "UPDATE Evento SET Nome = ?, Descricao = ?, Data_evento = ?, Localizacao = ?, Frequencia = ?, Url_foto = ?, Dias_semana = ?, Dias_mes = ?, Quant_minima_pessoas = ?, Quant_maxima_pessoas = ?, Nivel_habilidade = ?, Status = ? WHERE Id_evento = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try {
+                int linhasAfetadas;
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setString(1, evento.getNome());
+                    stmt.setString(2, evento.getDescricao());
+                    stmt.setTimestamp(3, Timestamp.valueOf(evento.getDataEvento()));
+                    stmt.setString(4, evento.getLocalizacao());
+                    stmt.setString(5, evento.getFrequencia().name());
+                    stmt.setString(6, evento.getUrlFoto());
+                    stmt.setString(7, toCsv(evento.getDiasDaSemana()));
+                    stmt.setString(8, toCsv(evento.getDiasDoMes()));
+                    setNullableInteger(stmt, 9, evento.getQuantMinimaPessoas());
+                    setNullableInteger(stmt, 10, evento.getQuantMaximaPessoas());
+                    stmt.setString(11, evento.getNivelDeHabilidade());
+                    stmt.setString(12, evento.getStatus());
+                    stmt.setInt(13, evento.getId());
+                    linhasAfetadas = stmt.executeUpdate();
+                }
+
+                if (linhasAfetadas == 0) {
+                    conn.rollback();
+                    return null;
+                }
+
+                if (modalidadeIds != null) {
+                    deletarModalidades(conn, evento.getId());
+                    inserirModalidades(conn, evento.getId(), modalidadeIds);
+                }
+
+                conn.commit();
+                return buscarPorId(conn, evento.getId());
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar Evento no banco: " + e.getMessage(), e);
+        }
+    }
+
+    public boolean deletar(Integer id) {
+        String sql = "DELETE FROM Evento WHERE Id_evento = ?";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao deletar Evento com ID " + id + ": " + e.getMessage(), e);
+        }
+    }
+
     public List<Modalidade> buscarModalidadesPorIds(List<Integer> modalidadeIds) {
         try (Connection conn = ConnectionFactory.getConnection()) {
             return buscarModalidadesPorIds(conn, modalidadeIds);
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao buscar modalidades do evento: " + e.getMessage(), e);
+        }
+    }
+
+    public List<Modalidade> listarModalidades() {
+        String sql = "SELECT Id_categoria, Nome, Categoria FROM Modalidade ORDER BY Categoria, Nome";
+
+        try (Connection conn = ConnectionFactory.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            List<Modalidade> modalidades = new ArrayList<>();
+            while (rs.next()) {
+                modalidades.add(mapModalidade(rs));
+            }
+            return modalidades;
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao listar modalidades: " + e.getMessage(), e);
+        }
+    }
+
+    private void deletarModalidades(Connection conn, Integer eventoId) throws SQLException {
+        String sql = "DELETE FROM Modalidade_evento WHERE Id_evento = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, eventoId);
+            stmt.executeUpdate();
         }
     }
 

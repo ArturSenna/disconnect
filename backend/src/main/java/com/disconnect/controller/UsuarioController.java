@@ -7,6 +7,7 @@ import static spark.Spark.put;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import com.disconnect.domain.Usuario;
@@ -83,9 +84,13 @@ public class UsuarioController {
             } catch (IllegalArgumentException e) {
                 response.status(400);
                 return errorJson(e.getMessage());
-            } catch (RuntimeException e) {
+            } catch (NoSuchElementException e) {
                 response.status(404);
                 return errorJson(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.status(500);
+                return errorJson("Erro interno do servidor.");
             }
         });
 
@@ -105,9 +110,13 @@ public class UsuarioController {
             } catch (IllegalArgumentException e) {
                 response.status(400);
                 return errorJson(e.getMessage());
-            } catch (RuntimeException e) {
+            } catch (NoSuchElementException e) {
                 response.status(404);
                 return errorJson(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.status(500);
+                return errorJson("Erro interno do servidor.");
             }
         });
 
@@ -122,9 +131,13 @@ public class UsuarioController {
             } catch (IllegalArgumentException e) {
                 response.status(400);
                 return errorJson(e.getMessage());
-            } catch (RuntimeException e) {
+            } catch (NoSuchElementException e) {
                 response.status(404);
                 return errorJson(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.status(500);
+                return errorJson("Erro interno do servidor.");
             }
         });
     }

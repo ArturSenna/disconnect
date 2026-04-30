@@ -6,6 +6,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import com.disconnect.dao.EventoDAO;
@@ -59,7 +60,7 @@ public class EventoService {
             throw new IllegalArgumentException("A quantidade maxima deve ser maior ou igual a minima.");
         }
 
-        List<Integer> modalidadeIds = sanitizeModalidadeIds(dto.getCategoriaIds());
+        List<Integer> modalidadeIds = sanitizeModalidadeIds(dto.getModalidadeIds());
         if (modalidadeIds.isEmpty()) {
             throw new IllegalArgumentException("Selecione ao menos uma modalidade.");
         }
@@ -69,14 +70,6 @@ public class EventoService {
             throw new IllegalArgumentException("Uma ou mais modalidades informadas nao existem.");
         }
 
-        if (dto.getFrequencia().name().equals("SEMANAL") && (dto.getDiasDaSemana() == null || dto.getDiasDaSemana().isEmpty())) {
-            throw new IllegalArgumentException("Eventos semanais precisam informar ao menos um dia da semana.");
-        }
-
-        if (dto.getFrequencia().name().equals("MENSAL") && (dto.getDiasDoMes() == null || dto.getDiasDoMes().isEmpty())) {
-            throw new IllegalArgumentException("Eventos mensais precisam informar ao menos um dia do mes.");
-        }
-
         Evento evento = new Evento();
         evento.setNome(nome);
         evento.setDescricao(descricao);
@@ -84,15 +77,113 @@ public class EventoService {
         evento.setLocalizacao(local);
         evento.setFrequencia(dto.getFrequencia());
         evento.setUrlFoto(trimToNull(dto.getFotoUrl()));
-        evento.setDiasDaSemana(dto.getDiasDaSemana() != null ? new ArrayList<>(dto.getDiasDaSemana()) : new ArrayList<>());
-        evento.setDiasDoMes(dto.getDiasDoMes() != null ? new ArrayList<>(dto.getDiasDoMes()) : new ArrayList<>());
+        evento.setDiasDaSemana(sanitizeTextList(dto.getDiasDaSemana()));
+        evento.setDiasDoMes(sanitizeDiasDoMes(dto.getDiasDoMes()));
         evento.setQuantMinimaPessoas(quantMinima);
         evento.setQuantMaximaPessoas(quantMaxima);
         evento.setNivelDeHabilidade(requireText(dto.getNivelDeHabilidade(), "O nivel de habilidade e obrigatorio."));
         evento.setStatus(trimToNull(dto.getStatus()) != null ? dto.getStatus().trim() : "Ativo");
         evento.setOrganizador(organizador);
         evento.setModalidades(modalidades);
+        validarRecorrencia(evento);
         return eventoDAO.inserir(evento, modalidadeIds);
+    }
+
+    public Evento atualizarEvento(Integer id, EventoRequestDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("Os dados do evento sao obrigatorios.");
+        }
+
+        Evento evento = buscarPorId(id);
+
+        if (dto.getNome() != null) {
+            evento.setNome(requireText(dto.getNome(), "O nome do evento e obrigatorio."));
+        }
+
+        if (dto.getDescricao() != null) {
+            evento.setDescricao(requireText(dto.getDescricao(), "A descricao do evento e obrigatoria."));
+        }
+
+        if (dto.getDataEvento() != null) {
+            LocalDateTime dataEvento = parseDataEvento(dto.getDataEvento());
+            if (!dataEvento.isAfter(LocalDateTime.now())) {
+                throw new IllegalArgumentException("A data do evento deve ser futura.");
+            }
+            evento.setDataEvento(dataEvento);
+        }
+
+        if (dto.getLocal() != null) {
+            evento.setLocalizacao(requireText(dto.getLocal(), "O local do evento e obrigatorio."));
+        }
+
+        if (dto.getFrequencia() != null) {
+            evento.setFrequencia(dto.getFrequencia());
+        }
+
+        if (dto.getFotoUrl() != null) {
+            evento.setUrlFoto(trimToNull(dto.getFotoUrl()));
+        }
+
+        if (dto.getDiasDaSemana() != null) {
+            evento.setDiasDaSemana(sanitizeTextList(dto.getDiasDaSemana()));
+        }
+
+        if (dto.getDiasDoMes() != null) {
+            evento.setDiasDoMes(sanitizeDiasDoMes(dto.getDiasDoMes()));
+        }
+
+        if (dto.getQuantMinimaPessoas() != null) {
+            evento.setQuantMinimaPessoas(requirePositiveInteger(dto.getQuantMinimaPessoas(), "A quantidade minima de participantes e obrigatoria."));
+        }
+
+        if (dto.getQuantMaximaPessoas() != null) {
+            evento.setQuantMaximaPessoas(requirePositiveInteger(dto.getQuantMaximaPessoas(), "A quantidade maxima de participantes e obrigatoria."));
+        }
+
+        if (evento.getQuantMinimaPessoas() != null && evento.getQuantMaximaPessoas() != null
+                && evento.getQuantMinimaPessoas() > evento.getQuantMaximaPessoas()) {
+            throw new IllegalArgumentException("A quantidade maxima deve ser maior ou igual a minima.");
+        }
+
+        if (dto.getNivelDeHabilidade() != null) {
+            evento.setNivelDeHabilidade(requireText(dto.getNivelDeHabilidade(), "O nivel de habilidade e obrigatorio."));
+        }
+
+        if (dto.getStatus() != null) {
+            evento.setStatus(requireText(dto.getStatus(), "O status do evento e obrigatorio."));
+        }
+
+        List<Integer> modalidadeIds = null;
+        if (dto.getModalidadeIds() != null) {
+            modalidadeIds = sanitizeModalidadeIds(dto.getModalidadeIds());
+            if (modalidadeIds.isEmpty()) {
+                throw new IllegalArgumentException("Selecione ao menos uma modalidade.");
+            }
+
+            List<Modalidade> modalidades = eventoDAO.buscarModalidadesPorIds(modalidadeIds);
+            if (modalidades.size() != modalidadeIds.size()) {
+                throw new IllegalArgumentException("Uma ou mais modalidades informadas nao existem.");
+            }
+            evento.setModalidades(modalidades);
+        }
+
+        validarRecorrencia(evento);
+
+        Evento eventoAtualizado = eventoDAO.atualizar(evento, modalidadeIds);
+        if (eventoAtualizado == null) {
+            throw new RuntimeException("Falha ao atualizar o evento.");
+        }
+
+        return eventoAtualizado;
+    }
+
+    public void eliminarEvento(Integer id) {
+        buscarPorId(id);
+
+        boolean sucesso = eventoDAO.deletar(id);
+        if (!sucesso) {
+            throw new RuntimeException("Falha ao eliminar o evento.");
+        }
     }
 
     public Evento buscarPorId(Integer id) {
@@ -102,7 +193,7 @@ public class EventoService {
 
         Evento evento = eventoDAO.buscarPorId(id);
         if (evento == null) {
-            throw new RuntimeException("Evento com o ID " + id + " nao foi encontrado.");
+            throw new NoSuchElementException("Evento com o ID " + id + " nao foi encontrado.");
         }
 
         return evento;
@@ -117,6 +208,10 @@ public class EventoService {
             throw new IllegalArgumentException("O ID do organizador fornecido e invalido.");
         }
         return eventoDAO.listarPorOrganizador(organizadorId);
+    }
+
+    public List<Modalidade> listarModalidades() {
+        return eventoDAO.listarModalidades();
     }
 
     private String requireText(String value, String message) {
@@ -167,5 +262,52 @@ public class EventoService {
                 .collect(java.util.stream.Collectors.collectingAndThen(
                         java.util.stream.Collectors.toCollection(LinkedHashSet::new),
                         ArrayList::new));
+    }
+
+    private List<String> sanitizeTextList(List<String> values) {
+        if (values == null) {
+            return new ArrayList<>();
+        }
+
+        return values.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .collect(java.util.stream.Collectors.collectingAndThen(
+                        java.util.stream.Collectors.toCollection(LinkedHashSet::new),
+                        ArrayList::new));
+    }
+
+    private List<Integer> sanitizeDiasDoMes(List<Integer> diasDoMes) {
+        if (diasDoMes == null) {
+            return new ArrayList<>();
+        }
+
+        List<Integer> diasSanitizados = diasDoMes.stream()
+                .filter(Objects::nonNull)
+                .collect(java.util.stream.Collectors.collectingAndThen(
+                        java.util.stream.Collectors.toCollection(LinkedHashSet::new),
+                        ArrayList::new));
+
+        boolean existeDiaInvalido = diasSanitizados.stream().anyMatch(dia -> dia < 1 || dia > 31);
+        if (existeDiaInvalido) {
+            throw new IllegalArgumentException("Os dias do mes devem estar entre 1 e 31.");
+        }
+
+        return diasSanitizados;
+    }
+
+    private void validarRecorrencia(Evento evento) {
+        if (evento.getFrequencia() == null) {
+            throw new IllegalArgumentException("A frequencia do evento e obrigatoria.");
+        }
+
+        if (evento.getFrequencia().name().equals("SEMANAL") && evento.getDiasDaSemana().isEmpty()) {
+            throw new IllegalArgumentException("Eventos semanais precisam informar ao menos um dia da semana.");
+        }
+
+        if (evento.getFrequencia().name().equals("MENSAL") && evento.getDiasDoMes().isEmpty()) {
+            throw new IllegalArgumentException("Eventos mensais precisam informar ao menos um dia do mes.");
+        }
     }
 }

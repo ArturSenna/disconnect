@@ -14,6 +14,7 @@ interface AuthContextType {
   loading: boolean;
   login: (credentials: LoginDTO) => Promise<void>;
   register: (data: CreateUsuarioDTO) => Promise<void>;
+  updateUser: (user: Usuario) => void;
   logout: () => void;
 }
 
@@ -58,6 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateUser = useCallback((updatedUser: Usuario) => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  }, []);
+
   const logout = useCallback(() => {
     sessionStorage.removeItem(STORAGE_KEY);
     setUser(null);
@@ -71,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         register,
+        updateUser,
         logout,
       }}
     >
