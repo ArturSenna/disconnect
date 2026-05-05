@@ -1,5 +1,6 @@
 package com.disconnect.controller;
 
+import com.google.gson.JsonSyntaxException;
 import com.disconnect.domain.Usuario;
 import com.disconnect.dto.LoginDTO;
 import com.disconnect.dto.UsuarioResponseDTO;
@@ -23,6 +24,17 @@ public class AuthController {
             try {
                 LoginDTO loginDTO = gson.fromJson(req.body(), LoginDTO.class);
 
+                if (loginDTO == null) {
+                    res.status(400);
+                    return erro("Corpo da requisição inválido.");
+                }
+
+                if (loginDTO.getLogin() == null || loginDTO.getLogin().trim().isEmpty()
+                        || loginDTO.getSenha() == null || loginDTO.getSenha().trim().isEmpty()) {
+                    res.status(400);
+                    return erro("Login e senha são obrigatórios.");
+                }
+
                 Usuario usuarioLogado = usuarioService.autenticar(
                         loginDTO.getLogin(),
                         loginDTO.getSenha()
@@ -34,6 +46,10 @@ public class AuthController {
             } catch (IllegalArgumentException e) {
                 res.status(401);
                 return erro(e.getMessage());
+
+            } catch (JsonSyntaxException e) {
+                res.status(400);
+                return erro("Corpo da requisição inválido.");
 
             } catch (Exception e) {
                 e.printStackTrace();

@@ -1,12 +1,14 @@
 package com.disconnect.controller;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import com.disconnect.domain.Usuario;
 import com.disconnect.dto.UsuarioResponseDTO;
 import com.disconnect.service.UsuarioService;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import static spark.Spark.delete;
 import static spark.Spark.get;
@@ -29,6 +31,10 @@ public class UsuarioController {
             try {
                 Usuario usuarioDaRequisicao = gson.fromJson(req.body(), Usuario.class);
 
+                if (usuarioDaRequisicao == null) {
+                    throw new IllegalArgumentException("Corpo da requisição inválido.");
+                }
+
                 Usuario usuarioCriado = usuarioService.registarUsuario(usuarioDaRequisicao);
 
                 res.status(201);
@@ -37,6 +43,10 @@ public class UsuarioController {
             } catch (IllegalArgumentException e) {
                 res.status(400);
                 return erro(e.getMessage());
+
+            } catch (JsonSyntaxException e) {
+                res.status(400);
+                return erro("Corpo da requisição inválido.");
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -58,9 +68,18 @@ public class UsuarioController {
                 res.status(400);
                 return erro("ID inválido.");
 
-            } catch (RuntimeException e) {
+            } catch (IllegalArgumentException e) {
+                res.status(400);
+                return erro(e.getMessage());
+
+            } catch (NoSuchElementException e) {
                 res.status(404);
                 return erro(e.getMessage());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                res.status(500);
+                return erro("Erro interno do servidor.");
             }
         });
 
@@ -98,6 +117,10 @@ public class UsuarioController {
 
                 Usuario dadosAtualizados = gson.fromJson(req.body(), Usuario.class);
 
+                if (dadosAtualizados == null) {
+                    throw new IllegalArgumentException("Corpo da requisição inválido.");
+                }
+
                 Usuario usuarioSalvo = usuarioService.atualizarUsuario(id, dadosAtualizados);
 
                 res.status(200);
@@ -111,9 +134,18 @@ public class UsuarioController {
                 res.status(400);
                 return erro(e.getMessage());
 
-            } catch (RuntimeException e) {
+            } catch (JsonSyntaxException e) {
+                res.status(400);
+                return erro("Corpo da requisição inválido.");
+
+            } catch (NoSuchElementException e) {
                 res.status(404);
                 return erro(e.getMessage());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                res.status(500);
+                return erro("Erro interno do servidor.");
             }
         });
 
@@ -130,9 +162,18 @@ public class UsuarioController {
                 res.status(400);
                 return erro("ID inválido.");
 
-            } catch (RuntimeException e) {
+            } catch (IllegalArgumentException e) {
+                res.status(400);
+                return erro(e.getMessage());
+
+            } catch (NoSuchElementException e) {
                 res.status(404);
                 return erro(e.getMessage());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                res.status(500);
+                return erro("Erro interno do servidor.");
             }
         });
     }
