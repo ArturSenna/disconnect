@@ -1,15 +1,13 @@
 package com.disconnect.controller;
 
-import static spark.Spark.get;
-import static spark.Spark.post;
-
-import java.util.Map;
-
+import com.google.gson.JsonSyntaxException;
 import com.disconnect.domain.Usuario;
 import com.disconnect.dto.LoginDTO;
 import com.disconnect.dto.UsuarioResponseDTO;
 import com.disconnect.service.UsuarioService;
 import com.google.gson.Gson;
+
+import static spark.Spark.post;
 
 public class AuthController {
 
@@ -22,36 +20,55 @@ public class AuthController {
     }
 
     public void registerRoutes() {
-        get("/api/login", (request, response) -> {
-            response.type("application/json");
-            response.status(405);
-            return errorJson("Use POST /api/login para autenticar.");
-        });
-
-        post("/api/login", (request, response) -> {
-            response.type("application/json");
-
+        post("/api/login", (req, res) -> {
             try {
-                LoginDTO loginDTO = gson.fromJson(request.body(), LoginDTO.class);
+                LoginDTO loginDTO = gson.fromJson(req.body(), LoginDTO.class);
+
                 if (loginDTO == null) {
-                    throw new IllegalArgumentException("Corpo da requisicao invalido.");
+                    res.status(400);
+                    return erro("Corpo da requisição inválido.");
                 }
 
-                Usuario usuarioLogado = usuarioService.autenticar(loginDTO.getLogin(), loginDTO.getSenha());
-                response.status(200);
+                if (loginDTO.getLogin() == null || loginDTO.getLogin().trim().isEmpty()
+                        || loginDTO.getSenha() == null || loginDTO.getSenha().trim().isEmpty()) {
+                    res.status(400);
+                    return erro("Login e senha são obrigatórios.");
+                }
+
+                Usuario usuarioLogado = usuarioService.autenticar(
+                        loginDTO.getLogin(),
+                        loginDTO.getSenha()
+                );
+
+                res.status(200);
                 return gson.toJson(new UsuarioResponseDTO(usuarioLogado));
+
             } catch (IllegalArgumentException e) {
-                response.status(401);
-                return errorJson(e.getMessage());
+                res.status(401);
+                return erro(e.getMessage());
+
+            } catch (JsonSyntaxException e) {
+                res.status(400);
+                return erro("Corpo da requisição inválido.");
+
             } catch (Exception e) {
                 e.printStackTrace();
-                response.status(500);
-                return errorJson("Erro interno do servidor.");
+                res.status(500);
+                return erro("Erro interno do servidor.");
             }
         });
     }
 
-    private String errorJson(String message) {
-        return gson.toJson(Map.of("erro", message));
+    private String erro(String mensagem) {
+        return gson.toJson(new MensagemErro(mensagem));
+    }
+
+    private static class MensagemErro {
+
+        private final String erro;
+
+        private MensagemErro(String erro) {
+            this.erro = erro;
+        }
     }
 }
