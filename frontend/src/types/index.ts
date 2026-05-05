@@ -15,6 +15,7 @@ export interface Usuario {
   biografia?: string;
   urlFoto?: string;
   dataCriacao: string;
+  isAdmin?: boolean;
 }
 
 export interface Categoria {

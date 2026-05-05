@@ -15,6 +15,7 @@ public class UsuarioResponseDTO {
     private String biografia;
     private String urlFoto;
     private LocalDateTime dataCriacao;
+    private Boolean isAdmin;
 
     public UsuarioResponseDTO() {
     }
@@ -28,6 +29,7 @@ public class UsuarioResponseDTO {
         this.biografia = usuario.getBiografia();
         this.urlFoto = usuario.getUrlFoto();
         this.dataCriacao = usuario.getDataCriacao();
+        this.isAdmin = usuario.getIsAdmin();
     }
 
     public Integer getId() {
@@ -62,6 +64,10 @@ public class UsuarioResponseDTO {
         return dataCriacao;
     }
 
+    public Boolean getIsAdmin() {
+        return this.isAdmin;
+    }
+
     public void setId(Integer id) {
         this.id = id;
     }
@@ -92,5 +98,9 @@ public class UsuarioResponseDTO {
 
     public void setDataCriacao(LocalDateTime dataCriacao) {
         this.dataCriacao = dataCriacao;
+    }
+
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
     }
 }
