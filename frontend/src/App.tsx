@@ -12,6 +12,8 @@ import { MyEventsPage } from "@/pages/events/MyEvents";
 import { ProfilePage } from "@/pages/Profile";
 import { EditProfilePage } from "@/pages/Profile/EditProfile";
 import { DeleteProfilePage } from "@/pages/Profile/DeleteProfile";
+import { AdminRoute } from "@/components/AdminRoute";
+import { AdminDashboardPage } from "@/pages/Admin";
 
 export default function App() {
   return (
@@ -37,6 +39,9 @@ export default function App() {
             <Route path="/profile/:id" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/profile/delete" element={<DeleteProfilePage />} />
+          </Route>
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminDashboardPage />} />
           </Route>
         </Route>
 
