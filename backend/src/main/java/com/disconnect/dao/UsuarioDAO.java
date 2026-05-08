@@ -202,6 +202,44 @@ public class UsuarioDAO {
         return usuario; // Retorna null se o login não existir
     }
 
+    public Usuario buscarPorEmail(String email) {
+        String sql = "SELECT * FROM Usuario WHERE Email = ?";
+        Usuario usuario = null;
+
+        try (Connection conn = ConnectionFactory.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, email);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    usuario = new Usuario();
+                    usuario.setId(rs.getInt("Id_usuario"));
+                    usuario.setNome(rs.getString("Nome"));
+                    usuario.setEmail(rs.getString("Email"));
+                    usuario.setSenha(rs.getString("Senha"));
+
+                    int idade = rs.getInt("Idade");
+                    if (!rs.wasNull()) {
+                        usuario.setIdade(idade);
+                    }
+
+                    usuario.setBiografia(rs.getString("Bio"));
+                    usuario.setUrlFoto(rs.getString("Url_foto"));
+                    usuario.setIsAdmin(rs.getBoolean("Is_admin"));
+                    usuario.setLogin(rs.getString("Login"));
+
+                    java.sql.Timestamp dataCriacao = rs.getTimestamp("Data_criacao");
+                    if (dataCriacao != null) {
+                        usuario.setDataCriacao(dataCriacao.toLocalDateTime());
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar Usuario por Email", e);
+        }
+        return usuario;
+    }
+
     // Aqui é o 'U' do CRUD. Atualiza os dados de um usuário já existente. Sem segredo.
     public boolean atualizar(Usuario usuario) {
         // A cláusula WHERE Id_usuario = ? é VITAL. Sem ela, você daria um update na tabela inteira.
