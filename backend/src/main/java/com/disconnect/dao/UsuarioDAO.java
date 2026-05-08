@@ -239,6 +239,8 @@ public class UsuarioDAO {
         }
 
         return usuarios;
+    }
+        
     public Usuario buscarPorEmail(String email) {
         String sql = "SELECT * FROM Usuario WHERE Email = ?";
         Usuario usuario = null;
