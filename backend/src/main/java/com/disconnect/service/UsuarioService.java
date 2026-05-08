@@ -24,15 +24,19 @@ public class UsuarioService {
     public Usuario registarUsuario(Usuario usuario) {
         // 1. Validações de Domínio (Fail Fast) ou seja, se algo não passar, já da erro rapido
 
-        if (usuario.getNome() == null || usuario.getNome().trim().isEmpty()) {
+        String nomeNormalizado = usuario.getNome() != null ? usuario.getNome().trim() : null;
+        String emailNormalizado = usuario.getEmail() != null ? usuario.getEmail().trim() : null;
+        String loginNormalizado = usuario.getLogin() != null ? usuario.getLogin().trim() : null;
+
+        if (nomeNormalizado == null || nomeNormalizado.isEmpty()) {
             throw new IllegalArgumentException("O nome do utilizador é obrigatório e não pode estar vazio.");
         }
 
-        if (usuario.getEmail() == null || !usuario.getEmail().contains("@")) {
+        if (emailNormalizado == null || emailNormalizado.isEmpty() || !emailNormalizado.contains("@")) {
             throw new IllegalArgumentException("O formato do e-mail fornecido é inválido.");
         }
 
-        if (usuario.getLogin() == null || usuario.getLogin().trim().isEmpty()) {
+        if (loginNormalizado == null || loginNormalizado.isEmpty()) {
             throw new IllegalArgumentException("O login do utilizador é obrigatório e não pode estar vazio.");
         }
 
@@ -43,6 +47,10 @@ public class UsuarioService {
         if (usuario.getIdade() != null && usuario.getIdade() < 12) {
             throw new IllegalArgumentException("O utilizador deve ter pelo menos 12 anos para se registar na plataforma.");
         }
+
+        usuario.setNome(nomeNormalizado);
+        usuario.setEmail(emailNormalizado);
+        usuario.setLogin(loginNormalizado);
 
         // 2. Enviar para a camada de persistência
         // Se todas as regras de negócio passarem, chamamos o DAO.
@@ -150,7 +158,12 @@ public class UsuarioService {
             throw new IllegalArgumentException("Login e senha são obrigatórios.");
         }
 
-        Usuario usuarioBanco = usuarioDAO.buscarPorLogin(login);
+        String credencial = login.trim();
+        Usuario usuarioBanco = usuarioDAO.buscarPorLogin(credencial);
+
+        if (usuarioBanco == null && credencial.contains("@")) {
+            usuarioBanco = usuarioDAO.buscarPorEmail(credencial);
+        }
 
         if (usuarioBanco == null || !PasswordUtil.verificarSenha(senha, usuarioBanco.getSenha())) {
             throw new IllegalArgumentException("Usuário ou senha inválidos.");

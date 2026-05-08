@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import com.disconnect.controller.AuthController;
+import com.disconnect.controller.AvaliacaoController;
 import com.disconnect.controller.EventoController;
 import com.disconnect.controller.UsuarioController;
+import com.disconnect.service.AvaliacaoService;
 import com.disconnect.service.EventoService;
 import com.disconnect.service.UsuarioService;
 import com.disconnect.util.AppConfig;
@@ -34,10 +36,12 @@ public class Main {
 
         UsuarioService usuarioService = new UsuarioService();
         EventoService eventoService = new EventoService();
+        AvaliacaoService avaliacaoService = new AvaliacaoService();
 
         new AuthController(usuarioService, gson).registerRoutes();
         new UsuarioController(usuarioService, gson).registerRoutes();
         new EventoController(eventoService, gson).registerRoutes();
+        new AvaliacaoController(avaliacaoService, gson).registerRoutes();
 
         get("/health", (request, response) -> {
             response.status(200);

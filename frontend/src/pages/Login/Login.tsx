@@ -36,12 +36,13 @@ export function LoginPage({ onSwitchToRegister }: LoginPageProps) {
         {error && <p className={styles.error}>{error}</p>}
 
         <label className={styles.label}>
-          Login
+          Login ou e-mail
           <input
             type="text"
             className={styles.input}
             value={loginInput}
             onChange={(e) => setLoginInput(e.target.value)}
+            placeholder="Seu login ou e-mail"
             required
           />
         </label>
