@@ -58,6 +58,8 @@ public class UsuarioService {
         String senhaHash = PasswordUtil.gerarHash(usuario.getSenha());
         usuario.setSenha(senhaHash);
 
+        usuario.setIsAdmin(false);
+
         return usuarioDAO.inserir(usuario);
 
     }
@@ -132,6 +134,10 @@ public class UsuarioService {
         }
 
         return usuarioExistente;
+    }
+
+    public List<Usuario> listarTodos() {
+        return usuarioDAO.listarTodos();
     }
 
     // D do CRUD...

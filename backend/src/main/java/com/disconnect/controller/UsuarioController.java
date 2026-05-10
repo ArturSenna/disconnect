@@ -111,6 +111,24 @@ public class UsuarioController {
             }
         });
 
+        get("/api/admin/usuarios", (req, res) -> {
+            try {
+                List<Usuario> usuarios = usuarioService.listarTodos();
+
+                List<UsuarioResponseDTO> resposta = usuarios.stream()
+                        .map(UsuarioResponseDTO::new)
+                        .collect(Collectors.toList());
+
+                res.status(200);
+                return gson.toJson(resposta);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                res.status(500);
+                return erro("Erro ao listar usuários.");
+            }
+        });
+
         put("/api/usuarios/:id", (req, res) -> {
             try {
                 Integer id = Integer.parseInt(req.params(":id"));

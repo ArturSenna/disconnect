@@ -202,6 +202,45 @@ public class UsuarioDAO {
         return usuario; // Retorna null se o login não existir
     }
 
+    public List<Usuario> listarTodos() {
+        String sql = "SELECT * FROM Usuario ORDER BY Id_usuario ASC";
+        List<Usuario> usuarios = new ArrayList<>();
+
+        try (Connection conn = ConnectionFactory.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Usuario u = new Usuario();
+
+                u.setId(rs.getInt("Id_usuario"));
+                u.setNome(rs.getString("Nome"));
+                u.setEmail(rs.getString("Email"));
+                u.setLogin(rs.getString("Login"));
+                u.setSenha(rs.getString("Senha"));
+
+                int idade = rs.getInt("Idade");
+                if (!rs.wasNull()) {
+                    u.setIdade(idade);
+                }
+
+                u.setBiografia(rs.getString("Bio"));
+                u.setUrlFoto(rs.getString("Url_foto"));
+                u.setIsAdmin(rs.getBoolean("Is_admin"));
+
+                java.sql.Timestamp dataCriacao = rs.getTimestamp("Data_criacao");
+                if (dataCriacao != null) {
+                    u.setDataCriacao(dataCriacao.toLocalDateTime());
+                }
+
+                usuarios.add(u);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao listar usuários: " + e.getMessage(), e);
+        }
+
+        return usuarios;
+    }
+        
     public Usuario buscarPorEmail(String email) {
         String sql = "SELECT * FROM Usuario WHERE Email = ?";
         Usuario usuario = null;
